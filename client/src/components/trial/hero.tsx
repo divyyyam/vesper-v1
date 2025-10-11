@@ -10,7 +10,7 @@ const Hero = () => {
       <div className="flex flex-col items-center justify-center h-full px-4">
         <div className="text-center max-w-4xl">
           {/* Top label - close to main text */}
-          <div className="inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm rounded-full border border-gray-700 mb-6 hover:cursor-pointer">
+          {/* <div className="inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm rounded-full border border-gray-700 mb-6 hover:cursor-pointer">
             <span onClick={()=>{router.push("/vesper-ai")}} >Vesper AI</span>
             <svg
               className="ml-2 w-4 h-4"
@@ -25,7 +25,7 @@ const Hero = () => {
                 d="M9 5l7 7-7 7"
               />
             </svg>
-          </div>
+          </div> */}
 
           <h1 className="text-6xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
             Your <span className="text-blue-700 italic">Legal Ally</span> in the
@@ -47,8 +47,8 @@ const Hero = () => {
             <Button onClick={()=>{router.push("/login")}} className="px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200 hover:cursor-pointer">
               Get Started
             </Button>
-            <Button onClick={()=>router.push("/vesper-ai")}className="px-8 py-3 text-white font-semibold transition-colors duration-200 hover:cursor-pointer hover:bg-black hover:text-white">
-              About Vesper
+            <Button onClick={()=>router.push("/vesper-ai")}className="px-8 py-3 text-white bg-black font-semibold transition-colors duration-200 hover:cursor-pointer hover:bg-black hover:text-white">
+               Vesper AI
             </Button>
           </div>
 
