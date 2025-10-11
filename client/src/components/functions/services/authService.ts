@@ -34,8 +34,8 @@ export const getAuthData = () => {
     const role = localStorage.getItem("role");
     
     if (token && id && email && name && role) {
-      return { token, id, email, name, role };
     }
+    return { token, id, email, name, role };
     return null;
   } catch (error) {
     console.error("Failed to retrieve authentication data:", error);
