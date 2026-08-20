@@ -539,7 +539,17 @@ export const getUserAppointments = async (c: Context) => {
 export const getAllLawyers = async (c:Context) => {
   try {
     const db = getDb(c.env.DATABASE_URL);
-    const lawyerList = await db.select().from(lawyers).orderBy(lawyers.createdAt)
+    const lawyerList = await db
+      .select({
+        id: lawyers.id,
+        email: lawyers.email,
+        name: lawyers.name,
+        stateRollNumber: lawyers.stateRollNumber,
+        specialization: lawyers.specialization,
+        createdAt: lawyers.createdAt,
+      })
+      .from(lawyers)
+      .orderBy(lawyers.createdAt)
     return c.json({
       success:true,
       data:lawyerList

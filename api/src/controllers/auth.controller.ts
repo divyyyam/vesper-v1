@@ -78,7 +78,8 @@ export const registerUser = async (c: Context) => {
       message: "User registered successfully",
       token,
       email: newUser[0].email,
-      id: newUser[0].id
+      id: newUser[0].id,
+      name: newUser[0].name
     }, 201);
 
   } catch (error) {
@@ -144,6 +145,7 @@ export const registerAdv = async (c: Context) => {
       token,
       email: newLawyer[0].email,
       id: newLawyer[0].id,
+      name: newLawyer[0].name,
       stateRollNumber:newLawyer[0].stateRollNumber,
       specialization:newLawyer[0].specialization
     }, 201);
@@ -203,6 +205,7 @@ export const loginUser = async (c: Context) => {
       token,
       email: userData.email,
       id: userData.id,
+      name: userData.name,
      
     });
 
@@ -261,6 +264,8 @@ export const loginAdv = async (c: Context) => {
       token,
       email: lawyerData.email,
       id: lawyerData.id,
+      name: lawyerData.name,
+      specialization: lawyerData.specialization,
        
       stateRollNumber:lawyerData.stateRollNumber
     });
