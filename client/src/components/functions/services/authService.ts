@@ -1,167 +1,93 @@
 import axiosAuth from "../http/axiosAuth";
+
 interface ApiResponse {
   success: boolean;
   token: string;
   email: string;
   id: string;
-  name: string;
+  name?: string;
   stateRollNumber?: string;
+  specialization?: string;
   message?: string;
 }
 
 interface LoginPayload {
   email: string;
   password: string;
+  stateRollNumber?: string;
 }
 
 interface RegisterAdvPayload extends LoginPayload {
   name: string;
   stateRollNumber: string;
-  
+  specialization: string;
 }
 
 interface RegisterUserPayload extends LoginPayload {
   name: string;
-   
 }
- 
+
 export const getAuthData = () => {
   try {
-    const token = localStorage.getItem("token");
-    const id = localStorage.getItem("id");
-    const email = localStorage.getItem("email");
-    const name = localStorage.getItem("name");
-    const role = localStorage.getItem("role");
-    
-    if (token && id && email && name && role) {
-    }
-    return { token, id, email, name, role };
-    return null;
+    return {
+      token: localStorage.getItem("token"),
+      id: localStorage.getItem("id"),
+      email: localStorage.getItem("email"),
+      name: localStorage.getItem("name"),
+      role: localStorage.getItem("role"),
+    };
   } catch (error) {
     console.error("Failed to retrieve authentication data:", error);
     return null;
   }
 };
 
- 
 export const clearAuth = (): void => {
   try {
-    localStorage.removeItem("token");
-    localStorage.removeItem("id");
-    localStorage.removeItem("email");
-    localStorage.removeItem("name");
-    localStorage.removeItem("role");
+    ["token", "id", "email", "name", "role"].forEach((key) =>
+      localStorage.removeItem(key),
+    );
   } catch (error) {
     console.error("Failed to clear authentication data:", error);
   }
 };
 
- 
+const persistAuth = (data: ApiResponse, role: "user" | "lawyer") => {
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("id", data.id);
+  localStorage.setItem("email", data.email);
+  localStorage.setItem("role", role);
+  if (data.name) localStorage.setItem("name", data.name);
+  else localStorage.removeItem("name");
+};
+
 export const registerAdv = async (payload: RegisterAdvPayload): Promise<ApiResponse> => {
-  try {
-    const res = await axiosAuth.post<ApiResponse>("/register-adv", payload);
-    
-    if (res.data.success) {
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("id", res.data.id);
-      localStorage.setItem("email", res.data.email);
-      localStorage.setItem("name", res.data.name);
-      localStorage.setItem("role", "lawyer");
-    }
-    
-    return res.data;
-  } catch (error: any) {
-    console.error("Lawyer registration failed:", error.response?.data || error.message);
-    throw error;
-  }
+  const response = await axiosAuth.post<ApiResponse>("/register-adv", payload);
+  if (response.data.success) persistAuth(response.data, "lawyer");
+  return response.data;
 };
 
- 
 export const loginAdv = async (payload: LoginPayload): Promise<ApiResponse> => {
-  try {
-    const res = await axiosAuth.post<ApiResponse>("/login-adv", payload);
-    
-    if (res.data.success) {
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("id", res.data.id);
-      localStorage.setItem("email", res.data.email);
-      localStorage.setItem("name", res.data.name);
-      localStorage.setItem("role", "lawyer");
-    }
-    
-    return res.data;
-  } catch (error: any) {
-    console.error("Lawyer login failed:", error.response?.data || error.message);
-    throw error;
-  }
+  const response = await axiosAuth.post<ApiResponse>("/login-adv", payload);
+  if (response.data.success) persistAuth(response.data, "lawyer");
+  return response.data;
 };
 
- 
 export const registerUser = async (payload: RegisterUserPayload): Promise<ApiResponse> => {
-  try {
-    const res = await axiosAuth.post<ApiResponse>("/register-user", payload);
-    
-    if (res.data.success) {
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("id", res.data.id);
-      localStorage.setItem("email", res.data.email);
-      localStorage.setItem("name", res.data.name);
-      localStorage.setItem("role", "user");
-    }
-    
-    return res.data;
-  } catch (error: any) {
-    console.error("User registration failed:", error.response?.data || error.message);
-    throw error;
-  }
+  const response = await axiosAuth.post<ApiResponse>("/register-user", payload);
+  if (response.data.success) persistAuth(response.data, "user");
+  return response.data;
 };
 
- 
 export const loginUser = async (payload: LoginPayload): Promise<ApiResponse> => {
-  try {
-    const res = await axiosAuth.post<ApiResponse>("/login-user", payload);
-    
-    if (res.data.success) {
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("id", res.data.id);
-      localStorage.setItem("email", res.data.email);
-      localStorage.setItem("name", res.data.name);
-      localStorage.setItem("role", "user");
-    }
-    
-    return res.data;
-  } catch (error: any) {
-    console.error("User login failed:", error.response?.data || error.message);
-    throw error;
-  }
+  const response = await axiosAuth.post<ApiResponse>("/login-user", payload);
+  if (response.data.success) persistAuth(response.data, "user");
+  return response.data;
 };
 
- 
-export const isAuthenticated = (): boolean => {
-  const token = localStorage.getItem("token");
-  return !!token;
-};
-
- 
-export const getUserRole = (): string | null => {
-  return localStorage.getItem("role");
-};
- 
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem("token");
-};
-
-
-export const getUserId = (): string | null => {
-  return localStorage.getItem("id");
-};
-
- 
-export const getUserEmail = (): string | null => {
-  return localStorage.getItem("email");
-};
-
- 
-export const getUserName = (): string | null => {
-  return localStorage.getItem("name");
-};
+export const isAuthenticated = (): boolean => Boolean(localStorage.getItem("token"));
+export const getUserRole = (): string | null => localStorage.getItem("role");
+export const getAuthToken = (): string | null => localStorage.getItem("token");
+export const getUserId = (): string | null => localStorage.getItem("id");
+export const getUserEmail = (): string | null => localStorage.getItem("email");
+export const getUserName = (): string | null => localStorage.getItem("name");

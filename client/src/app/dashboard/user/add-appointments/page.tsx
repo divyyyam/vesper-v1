@@ -1,359 +1,233 @@
-//@ts-nocheck
-"use client"
-import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Search, FileText, Mail, CheckCircle, AlertCircle } from 'lucide-react';
-import { backendUrl } from '@/store';
-const AddAppointmentPage = () => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    reason: '',
-    lawyerEmail: '',
-    scheduledAt: ''
-  });
-  
-  const [lawyers, setLawyers] = useState([]);
-  const [filteredLawyers, setFilteredLawyers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showLawyerDropdown, setShowLawyerDropdown] = useState(false);
-  const [selectedLawyer, setSelectedLawyer] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  AlertCircle,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  FileText,
+  LoaderCircle,
+  Search,
+  UserRound,
+} from "lucide-react";
+import {
+  createAppointment,
+  getLawyers,
+  type Lawyer,
+} from "@/lib/appointment-api";
+
+interface FormState {
+  title: string;
+  description: string;
+  reason: string;
+  scheduledAt: string;
+}
+
+const initialForm: FormState = {
+  title: "",
+  description: "",
+  reason: "",
+  scheduledAt: "",
+};
+
+const reasons = [
+  "Contract Review",
+  "Legal Advice",
+  "Litigation Support",
+  "Document Preparation",
+  "Business Law",
+  "Family Law",
+  "Criminal Law",
+  "Property Law",
+  "Other",
+];
+
+function minimumLocalDateTime() {
+  const date = new Date(Date.now() + 60 * 60 * 1000);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export default function AddAppointmentPage() {
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
+  const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
+  const [query, setQuery] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingLawyers, setLoadingLawyers] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
- 
-
-  // Fetch lawyers on component mount
   useEffect(() => {
-    fetchLawyers();
+    let active = true;
+    getLawyers()
+      .then((data) => active && setLawyers(data))
+      .catch((error: unknown) => active && setNotice({ type: "error", text: error instanceof Error ? error.message : "Could not load lawyers." }))
+      .finally(() => active && setLoadingLawyers(false));
+    return () => { active = false; };
   }, []);
 
-  // Filter lawyers based on search term
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = lawyers.filter(lawyer => 
-        lawyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lawyer.specialization.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lawyer.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredLawyers(filtered);
-    } else {
-      setFilteredLawyers(lawyers);
+  const filteredLawyers = useMemo(() => {
+    const search = query.trim().toLowerCase();
+    if (!search) return lawyers;
+    return lawyers.filter((lawyer) =>
+      [lawyer.name, lawyer.email, lawyer.specialization || ""]
+        .some((value) => value.toLowerCase().includes(search)),
+    );
+  }, [lawyers, query]);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setNotice(null);
+
+    const userEmail = localStorage.getItem("email");
+    if (!userEmail) {
+      setNotice({ type: "error", text: "Your session has expired. Please sign in again." });
+      return;
     }
-  }, [searchTerm, lawyers]);
-
-  const fetchLawyers = async () => {
-    try {
-      setLoadingLawyers(true);
-      const response = await fetch(`${backendUrl}/api/v1/appointment/all-lawyers`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setLawyers(data.data);
-        setFilteredLawyers(data.data);
-      } else {
-        setMessage({ type: 'error', text: 'Failed to fetch lawyers' });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Error connecting to server' });
-    } finally {
-      setLoadingLawyers(false);
+    if (!selectedLawyer) {
+      setNotice({ type: "error", text: "Choose a lawyer before scheduling." });
+      return;
     }
-  };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    const scheduledDate = new Date(form.scheduledAt);
+    if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() < Date.now() + 60 * 60 * 1000) {
+      setNotice({ type: "error", text: "Choose a time at least one hour from now." });
+      return;
+    }
 
-  const handleLawyerSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setShowLawyerDropdown(true);
-  };
-
-  const selectLawyer = (lawyer) => {
-    setSelectedLawyer(lawyer);
-    setFormData(prev => ({
-      ...prev,
-      lawyerEmail: lawyer.email
-    }));
-    setSearchTerm(lawyer.name);
-    setShowLawyerDropdown(false);
-  };
-
-  const clearMessage = () => {
-    setMessage({ type: '', text: '' });
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    clearMessage();
-
+    setSubmitting(true);
     try {
-      // Get user email from localStorage
-      const userEmail = localStorage.getItem('email');
-      if (!userEmail) {
-        setMessage({ type: 'error', text: 'User not logged in. Please log in first.' });
-        setLoading(false);
-        return;
-      }
-
-      // Validate form data
-      if (!formData.title || !formData.description || !formData.reason || !formData.lawyerEmail || !formData.scheduledAt) {
-        setMessage({ type: 'error', text: 'Please fill in all fields' });
-        setLoading(false);
-        return;
-      }
-
-      const appointmentData = {
-        ...formData,
-        userEmail
-      };
-
-      const response = await fetch(`${backendUrl}/api/v1/appointment/add-appointment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(appointmentData)
+      await createAppointment({
+        ...form,
+        scheduledAt: scheduledDate.toISOString(),
+        userEmail,
+        lawyerEmail: selectedLawyer.email,
       });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage({ type: 'success', text: 'Appointment created successfully!' });
-        // Reset form
-        setFormData({
-          title: '',
-          description: '',
-          reason: '',
-          lawyerEmail: '',
-          scheduledAt: ''
-        });
-        setSelectedLawyer(null);
-        setSearchTerm('');
-      } else {
-        setMessage({ type: 'error', text: data.message || 'Failed to create appointment' });
-      }
+      setForm(initialForm);
+      setSelectedLawyer(null);
+      setQuery("");
+      setNotice({ type: "success", text: "Your consultation has been scheduled." });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Error connecting to server. Please try again.' });
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Could not schedule the appointment." });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
-  };
-
-  // Get minimum datetime for scheduling (current time + 1 hour)
-  const getMinDateTime = () => {
-    const now = new Date();
-    now.setHours(now.getHours() + 1);
-    return now.toISOString().slice(0, 16);
-  };
+  }
 
   return (
-    <div className="w-full px-4 sm:px-8 lg:px-16 xl:px-32 py-8 bg-[#0b0f19] text-slate-100 min-h-screen">
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 w-full">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-600/20 border border-blue-500/40 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-blue-400" />
-            </div>
-            <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Schedule Appointment</h1>
-            <p className="text-slate-300 text-sm">Book a consultation with a legal professional</p>
+    <div className="min-h-[calc(100vh-4rem)] bg-[#0d0d0d] px-5 py-10 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-10 flex flex-col gap-5 border-b border-white/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#ff7a50]">Appointments</p>
+            <h1 className="mt-3 text-4xl font-medium tracking-[-.045em] text-white sm:text-5xl">Book a consultation.</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[#8f8b84]">Share enough context for your lawyer to prepare, then choose a time that works.</p>
           </div>
+          <Link href="/dashboard/user/all-appointments" className="inline-flex items-center gap-2 text-sm text-[#b7b3ac] hover:text-white">View appointments <ArrowRight size={15} /></Link>
+        </div>
 
-          {message.text && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-              message.type === 'success' 
-                ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60' 
-                : 'bg-rose-950/80 text-rose-300 border border-rose-800/60'
-            }`}>
-              {message.type === 'success' ? (
-                <CheckCircle className="w-5 h-5 flex-shrink-0" />
-              ) : (
-                <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              )}
-              <span className="font-medium text-sm">{message.text}</span>
-            </div>
-          )}
-          <div className="space-y-6">
-            {/* Title Field */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
-                <FileText className="w-4 h-4 inline mr-2 text-blue-400" />
-                Appointment Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="e.g., Legal Consultation for Contract Review"
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-                required
-              />
+        {notice && (
+          <div role="status" className={`mb-6 flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm ${notice.type === "success" ? "border-emerald-400/20 bg-emerald-400/8 text-emerald-200" : "border-red-400/20 bg-red-400/8 text-red-200"}`}>
+            <span className="flex items-center gap-2">{notice.type === "success" ? <CheckCircle2 size={17} /> : <AlertCircle size={17} />}{notice.text}</span>
+            {notice.type === "success" && <Link href="/dashboard/user/all-appointments" className="shrink-0 font-medium underline underline-offset-4">View booking</Link>}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1.1fr_.9fr]">
+          <section className="space-y-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5 sm:p-7">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-5">
+              <span className="grid size-9 place-items-center rounded-full bg-[#ff6b3d]/15 text-[#ff7a50]"><FileText size={16} /></span>
+              <div><h2 className="text-base font-medium text-white">Consultation details</h2><p className="mt-0.5 text-xs text-[#716d67]">Tell the lawyer what you need help with.</p></div>
             </div>
 
-            {/* Description Field */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Provide detailed information about your legal matter..."
-                rows="4"
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none outline-none"
-                required
-              />
-            </div>
+            <Field label="Appointment title">
+              <input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="e.g. Employment contract review" className="field-control" />
+            </Field>
 
-            {/* Reason Field */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
-                Reason for Consultation
-              </label>
-              <select
-                name="reason"
-                value={formData.reason}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-                required
-              >
-                <option value="" className="bg-slate-900 text-slate-300">Select a reason</option>
-                <option value="Contract Review" className="bg-slate-900 text-slate-100">Contract Review</option>
-                <option value="Legal Advice" className="bg-slate-900 text-slate-100">Legal Advice</option>
-                <option value="Litigation Support" className="bg-slate-900 text-slate-100">Litigation Support</option>
-                <option value="Document Preparation" className="bg-slate-900 text-slate-100">Document Preparation</option>
-                <option value="Business Law" className="bg-slate-900 text-slate-100">Business Law</option>
-                <option value="Family Law" className="bg-slate-900 text-slate-100">Family Law</option>
-                <option value="Criminal Law" className="bg-slate-900 text-slate-100">Criminal Law</option>
-                <option value="Property Law" className="bg-slate-900 text-slate-100">Property Law</option>
-                <option value="Other" className="bg-slate-900 text-slate-100">Other</option>
-              </select>
-            </div>
-
-            {/* Lawyer Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
-                <User className="w-4 h-4 inline mr-2 text-blue-400" />
-                Select Lawyer
-              </label>
+            <Field label="Reason for consultation">
               <div className="relative">
-                <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={handleLawyerSearch}
-                    onFocus={() => setShowLawyerDropdown(true)}
-                    placeholder={loadingLawyers ? "Loading lawyers..." : "Search lawyers by name, specialization, or email"}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-                    disabled={loadingLawyers}
-                  />
-                </div>
+                <select required value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} className="field-control appearance-none pr-10">
+                  <option value="">Select a reason</option>
+                  {reasons.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
+                </select>
+                <ChevronDown size={15} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#77736d]" />
+              </div>
+            </Field>
 
-                {showLawyerDropdown && !loadingLawyers && (
-                  <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
-                    {filteredLawyers.length > 0 ? (
-                      filteredLawyers.map((lawyer) => (
-                        <div
-                          key={lawyer.id}
-                          onClick={() => selectLawyer(lawyer)}
-                          className="p-4 hover:bg-slate-800 cursor-pointer border-b border-slate-800/60 last:border-b-0 transition-colors"
-                        >
-                          <div className="font-semibold text-white">{lawyer.name}</div>
-                          <div className="text-sm text-blue-400 font-medium">{lawyer.specialization}</div>
-                          <div className="text-xs text-slate-400">{lawyer.email}</div>
-                          {lawyer.stateRollNumber && (
-                            <div className="text-xs text-slate-500 mt-0.5">Roll No: {lawyer.stateRollNumber}</div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-4 text-slate-400 text-center text-sm">
-                        No lawyers found matching your search
-                      </div>
-                    )}
+            <Field label="Background and questions">
+              <textarea required rows={6} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Briefly explain the situation, relevant deadlines, and what you would like to understand." className="field-control min-h-36 resize-y py-3" />
+            </Field>
+          </section>
+
+          <section className="space-y-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5 sm:p-7">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-5">
+              <span className="grid size-9 place-items-center rounded-full bg-[#ff6b3d]/15 text-[#ff7a50]"><Calendar size={16} /></span>
+              <div><h2 className="text-base font-medium text-white">Counsel and time</h2><p className="mt-0.5 text-xs text-[#716d67]">Choose who you want to speak with.</p></div>
+            </div>
+
+            <Field label="Lawyer">
+              <div className="relative">
+                <Search size={15} className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-[#77736d]" />
+                <input
+                  value={query}
+                  disabled={loadingLawyers}
+                  onFocus={() => setDropdownOpen(true)}
+                  onChange={(event) => { setQuery(event.target.value); setSelectedLawyer(null); setDropdownOpen(true); }}
+                  placeholder={loadingLawyers ? "Loading lawyers…" : "Search name or specialisation"}
+                  className="field-control pl-10"
+                />
+                {loadingLawyers && <LoaderCircle size={15} className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-[#ff7a50]" />}
+                {dropdownOpen && !loadingLawyers && (
+                  <div className="absolute z-30 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-white/15 bg-[#171717] p-1 shadow-2xl">
+                    {filteredLawyers.length ? filteredLawyers.map((lawyer) => (
+                      <button key={lawyer.id} type="button" onClick={() => { setSelectedLawyer(lawyer); setQuery(lawyer.name); setDropdownOpen(false); }} className="w-full rounded-lg px-3 py-3 text-left transition-colors hover:bg-white/5">
+                        <span className="block text-sm font-medium text-white">{lawyer.name}</span>
+                        <span className="mt-1 block text-xs text-[#817d76]">{lawyer.specialization || "General practice"} · {lawyer.email}</span>
+                      </button>
+                    )) : <p className="px-3 py-6 text-center text-xs text-[#716d67]">No lawyers match your search.</p>}
                   </div>
                 )}
               </div>
+            </Field>
 
-              {selectedLawyer && (
-                <div className="mt-3 p-3 bg-blue-950/60 rounded-xl border border-blue-800/60">
-                  <div className="font-semibold text-blue-300">{selectedLawyer.name}</div>
-                  <div className="text-sm text-blue-400">{selectedLawyer.specialization}</div>
-                  <div className="text-xs text-slate-300">{selectedLawyer.email}</div>
-                </div>
-              )}
-            </div>
+            {selectedLawyer && (
+              <div className="flex items-start gap-3 rounded-xl border border-[#ff6b3d]/20 bg-[#ff6b3d]/8 p-4">
+                <UserRound size={17} className="mt-0.5 text-[#ff7a50]" />
+                <div><p className="text-sm font-medium text-white">{selectedLawyer.name}</p><p className="mt-1 text-xs text-[#a17e71]">{selectedLawyer.specialization || "General practice"} · Roll {selectedLawyer.stateRollNumber}</p></div>
+              </div>
+            )}
 
-            {/* Scheduled Date and Time */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
-                <Clock className="w-4 h-4 inline mr-2 text-blue-400" />
-                Scheduled Date & Time
-              </label>
-              <input
-                type="datetime-local"
-                name="scheduledAt"
-                value={formData.scheduledAt}
-                onChange={handleInputChange}
-                min={getMinDateTime()}
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-                required
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                Please select a date and time at least 1 hour from now
-              </p>
-            </div>
+            <Field label="Date and time">
+              <div className="relative">
+                <Clock size={15} className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-[#77736d]" />
+                <input required type="datetime-local" min={minimumLocalDateTime()} value={form.scheduledAt} onChange={(event) => setForm({ ...form, scheduledAt: event.target.value })} className="field-control pl-10 [color-scheme:dark]" />
+              </div>
+              <p className="mt-2 text-[11px] leading-5 text-[#67635d]">Appointments must be at least one hour from now.</p>
+            </Field>
 
-            {/* Submit Button */}
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading || loadingLawyers || !selectedLawyer}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 px-6 rounded-xl font-bold hover:from-blue-500 hover:to-indigo-500 focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating Appointment...
-                </>
-              ) : (
-                <>
-                  <Calendar className="w-4 h-4" />
-                  Schedule Appointment
-                </>
-              )}
+            <button type="submit" disabled={submitting || loadingLawyers || !selectedLawyer} className="group flex h-13 w-full items-center justify-center gap-2 rounded-full bg-[#ff6b3d] text-sm font-semibold text-[#170b07] transition-colors hover:bg-[#ff7a50] disabled:cursor-not-allowed disabled:bg-[#303030] disabled:text-[#77736d]">
+              {submitting ? <><LoaderCircle size={16} className="animate-spin" /> Scheduling…</> : <>Schedule consultation <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" /></>}
             </button>
-         
-          <div className="mt-8 p-4 bg-slate-950/80 border border-slate-800 rounded-xl">
-            <h3 className="font-semibold text-slate-100 mb-2">📋 Appointment Guidelines</h3>
-            <ul className="text-sm text-slate-300 space-y-1.5">
-              <li>• Appointments must be scheduled at least 1 hour in advance</li>
-              <li>• Please provide detailed information to help the lawyer prepare</li>
-              <li>• You will receive a confirmation once the appointment is created</li>
-              <li>• Make sure to arrive on time for your scheduled consultation</li>
-            </ul>
-          </div>
-        </div>
+          </section>
+        </form>
       </div>
 
-      {/* Click outside to close dropdown */}
-      {showLawyerDropdown && (
-        <div 
-          className="fixed inset-0 z-5" 
-          onClick={() => setShowLawyerDropdown(false)}
-        />
-      )}
-    </div>
+      {dropdownOpen && <button type="button" aria-label="Close lawyer list" onClick={() => setDropdownOpen(false)} className="fixed inset-0 z-20 cursor-default" />}
+      <style jsx>{`
+        .field-control { width: 100%; min-height: 52px; border-radius: 12px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.035); padding-left: 16px; padding-right: 16px; color: white; font-size: 14px; outline: none; transition: border-color .2s, background .2s, box-shadow .2s; }
+        .field-control::placeholder { color: #625f5a; }
+        .field-control:focus { border-color: rgba(255,122,80,.7); background: rgba(255,255,255,.055); box-shadow: 0 0 0 4px rgba(255,107,61,.08); }
+        .field-control:disabled { cursor: wait; opacity: .6; }
+      `}</style>
     </div>
   );
-};
+}
 
-export default AddAppointmentPage;
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <label className="block"><span className="mb-2 block text-xs font-medium text-[#b7b3ac]">{label}</span>{children}</label>;
+}

@@ -1,42 +1,46 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
-interface AuthData {
-  token: string | null;
-  email: string | null;
-  role: "user" | "lawyer" | null;
-}
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { LoaderCircle } from "lucide-react";
+
+type Role = "user" | "lawyer";
 
 export default function DashboardAuthLayout({
   children,
+  expectedRole,
 }: {
   children: React.ReactNode;
+  expectedRole: Role;
 }) {
   const router = useRouter();
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const email = localStorage.getItem("email");
-    const role = localStorage.getItem("role") as "user" | "lawyer" | null;
+    const role = localStorage.getItem("role") as Role | null;
 
-    const authData: AuthData = { token, email, role };
-
-    if (!authData.token || !authData.email || !authData.role) {
-      router.replace("/login");  
+    if (!token || !email || !role) {
+      router.replace("/login");
       return;
     }
 
- 
-    if (authData.role === "user") {
-      router.replace("/dashboard/user");
-    } else if (authData.role === "lawyer") {
-      router.replace("/dashboard/lawyer");
-    } else {
-      router.replace("/login"); 
+    if (role !== expectedRole) {
+      router.replace(role === "lawyer" ? "/dashboard/lawyer" : "/dashboard/user");
+      return;
     }
-  }, [router]);
 
-   
+    setAuthorized(true);
+  }, [expectedRole, router]);
+
+  if (!authorized) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#0d0d0d] text-[#8f8b84]">
+        <div className="flex items-center gap-3 text-sm"><LoaderCircle size={17} className="animate-spin text-[#ff6b3d]" /> Checking your workspace…</div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }

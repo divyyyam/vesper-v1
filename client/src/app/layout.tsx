@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vesper ",
-  description: "Your legal companion",
+  title: "Vesper — Legal clarity, on demand",
+  description:
+    "Understand legal documents, find a verified lawyer, and move forward with confidence.",
 };
 
 export default function RootLayout({
@@ -23,11 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
+    <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0b0f19] text-slate-100 min-h-screen selection:bg-blue-600 selection:text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <main className="min-h-screen bg-[#0b0f19] text-slate-100">{children}</main>
+        {children}
       </body>
     </html>
   );

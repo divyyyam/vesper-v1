@@ -1,350 +1,177 @@
-//@ts-nocheck
-"use client"
-import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Mail, FileText, Search, Filter, ChevronLeft, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
-import axios from 'axios';
-import { backendUrl } from '@/store';
-const AppointmentsDashboard = () => {
-  const [appointments, setAppointments] = useState([]);
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  AlertCircle,
+  ArrowRight,
+  Calendar,
+  Clock,
+  FileText,
+  LoaderCircle,
+  Mail,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  UserRound,
+} from "lucide-react";
+import {
+  deleteAppointment,
+  getUserAppointments,
+  type Appointment,
+} from "@/lib/appointment-api";
+
+type Status = "all" | "scheduled" | "soon" | "completed";
+
+function appointmentStatus(dateValue: string): Exclude<Status, "all"> {
+  const difference = new Date(dateValue).getTime() - Date.now();
+  if (difference < 0) return "completed";
+  if (difference < 24 * 60 * 60 * 1000) return "soon";
+  return "scheduled";
+}
+
+function statusLabel(status: Exclude<Status, "all">) {
+  return status === "completed" ? "Completed" : status === "soon" ? "Within 24 hours" : "Scheduled";
+}
+
+export default function UserAppointmentsPage() {
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalAppointments, setTotalAppointments] = useState(0);
-  
-  const appointmentsPerPage = 10;
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<Status>("all");
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  const fetchAppointments = async (page = 1) => {
+  const loadAppointments = useCallback(async () => {
+    const email = localStorage.getItem("email");
+    if (!email) {
+      setError("Your session has expired. Please sign in again.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      
-       
-      const userEmail = localStorage.getItem('email');
-      const userId = localStorage.getItem('id');
-      const token = localStorage.getItem('token');
-      
-      if (!userEmail || !token) {
-        setError('User authentication required. Please log in.');
-        setLoading(false);
-        return;
-      }
-
-      const offset = (page - 1) * appointmentsPerPage;
-      
-      const response = await axios.get(`${backendUrl}/api/v1/appointment/user/${userEmail}`, {
-        params: {
-          limit: appointmentsPerPage,
-          offset: offset
-        },
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.data.success) {
-        setAppointments(response.data.appointments);
-        setTotalAppointments(response.data.total);
-        setError(null);
-      } else {
-        setError(response.data.message || 'Failed to fetch appointments');
-      }
-    } catch (err) {
-      if (err.response?.status === 401) {
-        setError('Session expired. Please log in again.');
-        // Optionally clear localStorage and redirect to login
-        localStorage.removeItem('email');
-        localStorage.removeItem('id');
-        localStorage.removeItem('token');
-      } else {
-        setError('Failed to fetch appointments. Please try again.');
-      }
-      console.error('Error fetching appointments:', err);
+      setAppointments(await getUserAppointments(email));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Could not load your appointments.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    fetchAppointments(currentPage);
-  }, [currentPage]);
+  useEffect(() => { void loadAppointments(); }, [loadAppointments]);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  const visibleAppointments = useMemo(() => {
+    const search = query.trim().toLowerCase();
+    return appointments.filter((appointment) => {
+      const matchesSearch = !search || [appointment.title, appointment.reason, appointment.lawyer?.name || "", appointment.lawyer?.email || ""]
+        .some((value) => value.toLowerCase().includes(search));
+      const matchesStatus = status === "all" || appointmentStatus(appointment.scheduledAt) === status;
+      return matchesSearch && matchesStatus;
     });
-  };
+  }, [appointments, query, status]);
 
-  const getStatusColor = (scheduledAt) => {
-    const now = new Date();
-    const appointmentDate = new Date(scheduledAt);
-    
-    if (appointmentDate < now) {
-      return 'bg-gray-100 text-gray-600';
-    } else if (appointmentDate - now < 24 * 60 * 60 * 1000) {
-      return 'bg-orange-100 text-orange-600';
-    } else {
-      return 'bg-green-100 text-green-600';
+  async function cancelAppointment(appointment: Appointment) {
+    if (!window.confirm(`Cancel “${appointment.title}”? This cannot be undone.`)) return;
+    setCancellingId(appointment.id);
+    setError("");
+    try {
+      await deleteAppointment(appointment.id);
+      setAppointments((current) => current.filter((item) => item.id !== appointment.id));
+    } catch (cancelError) {
+      setError(cancelError instanceof Error ? cancelError.message : "Could not cancel the appointment.");
+    } finally {
+      setCancellingId(null);
     }
-  };
-
-  const getStatusText = (scheduledAt) => {
-    const now = new Date();
-    const appointmentDate = new Date(scheduledAt);
-    
-    if (appointmentDate < now) {
-      return 'Completed';
-    } else if (appointmentDate - now < 24 * 60 * 60 * 1000) {
-      return 'Upcoming';
-    } else {
-      return 'Scheduled';
-    }
-  };
-
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesSearch = appointment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         appointment.lawyer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         appointment.reason.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (filterStatus === 'all') return matchesSearch;
-    
-    const status = getStatusText(appointment.scheduledAt).toLowerCase();
-    return matchesSearch && status === filterStatus;
-  });
-
-  const totalPages = Math.ceil(totalAppointments / appointmentsPerPage);
-
-  if (loading) {
-    return (
-      <div className="w-full px-4 sm:px-8 lg:px-16 xl:px-32 py-6 bg-transparent min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-96"></div>
-            </div>
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-64"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 
+  const upcomingCount = appointments.filter((item) => appointmentStatus(item.scheduledAt) !== "completed").length;
+
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100">
-      {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800 shadow-md">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-extrabold text-white tracking-tight">My Appointments</h1>
-              <p className="text-slate-300 text-sm mt-1">Manage and track all your legal consultations</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-950/80 border border-blue-800/60 text-blue-300 px-4 py-2 rounded-xl">
-                <span className="text-sm font-semibold">{totalAppointments} Total Appointments</span>
-              </div>
-            </div>
+    <div className="min-h-[calc(100vh-4rem)] bg-[#0d0d0d] px-5 py-10 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#ff7a50]">Appointments</p>
+            <h1 className="mt-3 text-4xl font-medium tracking-[-.045em] text-white sm:text-5xl">Your consultations.</h1>
+            <p className="mt-3 text-sm text-[#8f8b84]">Review upcoming sessions and keep track of past legal consultations.</p>
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {error && (
-          <div className="bg-rose-950/80 border border-rose-800/60 rounded-xl p-4 mb-6 flex items-center">
-            <AlertCircle className="h-5 w-5 text-rose-400 mr-3" />
-            <span className="text-rose-200 text-sm font-medium">{error}</span>
-            <button 
-              onClick={() => fetchAppointments(currentPage)} 
-              className="ml-auto text-rose-300 hover:text-white font-semibold text-sm underline"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {/* Search and Filter */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search appointments, lawyers, or reasons..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <Filter className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-              <select
-                className="pl-10 pr-8 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none outline-none text-sm cursor-pointer"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="all" className="bg-slate-900 text-slate-100">All Status</option>
-                <option value="scheduled" className="bg-slate-900 text-slate-100">Scheduled</option>
-                <option value="upcoming" className="bg-slate-900 text-slate-100">Upcoming</option>
-                <option value="completed" className="bg-slate-900 text-slate-100">Completed</option>
-              </select>
-            </div>
-          </div>
+          <Link href="/dashboard/user/add-appointments" className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#ff6b3d] px-5 text-sm font-semibold text-[#170b07] hover:bg-[#ff7a50]"><Plus size={16} /> Book consultation</Link>
         </div>
 
-        {/* Appointments List */}
-        <div className="space-y-4">
-          {filteredAppointments.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-12 text-center">
-              <Calendar className="h-16 w-16 text-slate-600 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">No appointments found</h3>
-              <p className="text-slate-400 text-sm">
-                {searchTerm || filterStatus !== 'all' 
-                  ? 'Try adjusting your search or filters' 
-                  : 'You haven\'t scheduled any appointments yet'}
-              </p>
-            </div>
-          ) : (
-            filteredAppointments.map((appointment) => (
-              <div key={appointment.id} className="bg-slate-900 border border-slate-800/80 rounded-2xl shadow-xl overflow-hidden hover:border-slate-700 transition-all">
-                <div className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-lg font-bold text-white">{appointment.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                          getStatusText(appointment.scheduledAt) === 'Completed' 
-                            ? 'bg-slate-800 text-slate-300 border-slate-700'
-                            : getStatusText(appointment.scheduledAt) === 'Upcoming'
-                            ? 'bg-amber-950/80 text-amber-300 border-amber-800/60'
-                            : 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60'
-                        }`}>
-                          {getStatusText(appointment.scheduledAt)}
-                        </span>
+        <div className="my-8 grid gap-3 sm:grid-cols-3">
+          <Stat label="Total consultations" value={appointments.length} />
+          <Stat label="Upcoming" value={upcomingCount} />
+          <Stat label="Completed" value={appointments.length - upcomingCount} />
+        </div>
+
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-3 sm:flex-row">
+          <div className="relative min-w-0 flex-1">
+            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#716d67]" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, lawyer, or reason" className="h-11 w-full rounded-xl border border-white/10 bg-[#121212] pl-10 pr-4 text-sm text-white outline-none placeholder:text-[#5f5b56] focus:border-[#ff7a50]/60" />
+          </div>
+          <select value={status} onChange={(event) => setStatus(event.target.value as Status)} className="h-11 rounded-xl border border-white/10 bg-[#121212] px-4 text-sm text-[#b7b3ac] outline-none focus:border-[#ff7a50]/60">
+            <option value="all">All statuses</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="soon">Within 24 hours</option>
+            <option value="completed">Completed</option>
+          </select>
+          <button type="button" onClick={() => void loadAppointments()} disabled={loading} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 px-4 text-sm text-[#a6a29a] hover:bg-white/5 hover:text-white disabled:opacity-50"><RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Refresh</button>
+        </div>
+
+        {error && <div role="alert" className="mb-5 flex items-center gap-3 rounded-xl border border-red-400/20 bg-red-400/8 px-4 py-3 text-sm text-red-200"><AlertCircle size={17} />{error}</div>}
+
+        {loading ? (
+          <div className="grid min-h-64 place-items-center rounded-2xl border border-white/10"><span className="flex items-center gap-3 text-sm text-[#817d76]"><LoaderCircle size={17} className="animate-spin text-[#ff7a50]" /> Loading consultations…</span></div>
+        ) : visibleAppointments.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/15 px-6 py-20 text-center">
+            <Calendar size={30} className="mx-auto text-[#625f5a]" />
+            <h2 className="mt-5 text-lg font-medium text-white">No consultations found</h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#77736d]">{query || status !== "all" ? "Try changing your search or status filter." : "Book a consultation when you are ready to speak with a legal professional."}</p>
+            {!query && status === "all" && <Link href="/dashboard/user/add-appointments" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#ff7a50]">Book your first consultation <ArrowRight size={15} /></Link>}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {visibleAppointments.map((appointment) => {
+              const currentStatus = appointmentStatus(appointment.scheduledAt);
+              const lawyerEmail = appointment.lawyer?.email || appointment.lawyerEmail;
+              return (
+                <article key={appointment.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-5 transition-colors hover:border-white/20 sm:p-6">
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[.1em] ${currentStatus === "completed" ? "border-white/10 text-[#77736d]" : currentStatus === "soon" ? "border-amber-400/25 bg-amber-400/8 text-amber-200" : "border-emerald-400/20 bg-emerald-400/8 text-emerald-200"}`}>{statusLabel(currentStatus)}</span>
+                        <span className="text-xs text-[#716d67]">{appointment.reason}</span>
                       </div>
-                      
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-slate-300">
-                          <Clock className="h-4 w-4 mr-2 text-blue-400" />
-                          <span className="text-sm">{formatDate(appointment.scheduledAt)}</span>
-                        </div>
-                        
-                        {appointment.lawyer && (
-                          <div className="flex items-center text-slate-300">
-                            <User className="h-4 w-4 mr-2 text-indigo-400" />
-                            <span className="text-sm font-semibold text-white">{appointment.lawyer.name}</span>
-                            <span className="text-sm ml-2 text-slate-400">({appointment.lawyer.email})</span>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center text-slate-300">
-                          <FileText className="h-4 w-4 mr-2 text-purple-400" />
-                          <span className="text-sm">{appointment.reason}</span>
-                        </div>
+                      <h2 className="mt-4 text-xl font-medium tracking-[-.025em] text-white">{appointment.title}</h2>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-[#8f8b84]">{appointment.description}</p>
+                      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs text-[#918d86]">
+                        <span className="flex items-center gap-2"><Clock size={14} className="text-[#ff7a50]" />{new Date(appointment.scheduledAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</span>
+                        <span className="flex items-center gap-2"><UserRound size={14} className="text-[#ff7a50]" />{appointment.lawyer?.name || lawyerEmail || "Assigned lawyer"}</span>
                       </div>
-                      
-                      {appointment.description && (
-                        <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3">
-                          <p className="text-sm text-slate-300">{appointment.description}</p>
-                        </div>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      {lawyerEmail && <a href={`mailto:${lawyerEmail}?subject=${encodeURIComponent(`Regarding ${appointment.title}`)}`} className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 px-4 text-xs text-[#b7b3ac] hover:bg-white/5 hover:text-white"><Mail size={14} /> Contact</a>}
+                      {currentStatus !== "completed" && (
+                        <button type="button" onClick={() => void cancelAppointment(appointment)} disabled={cancellingId === appointment.id} className="inline-flex h-10 items-center gap-2 rounded-full border border-red-400/15 px-4 text-xs text-red-300 hover:bg-red-400/8 disabled:opacity-50">
+                          {cancellingId === appointment.id ? <LoaderCircle size={14} className="animate-spin" /> : <Trash2 size={14} />} Cancel
+                        </button>
                       )}
                     </div>
-                    
-                    <div className="ml-6 flex-shrink-0">
-                      <div className="flex flex-col items-end gap-2">
-                        {appointment.lawyer?.walletAddress && (
-                          <div className="bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-full">
-                            <div className="flex items-center">
-                              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2"></div>
-                              <span className="text-xs text-emerald-300 font-semibold">Verified</span>
-                            </div>
-                          </div>
-                        )}
-                        <span className="text-xs text-slate-400">
-                          Created {formatDate(appointment.createdAt)}
-                        </span>
-                      </div>
-                    </div>
                   </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-4 mt-6">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-slate-300">
-                Showing {((currentPage - 1) * appointmentsPerPage) + 1} to {Math.min(currentPage * appointmentsPerPage, totalAppointments)} of {totalAppointments} appointments
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-800"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                
-                <div className="flex items-center space-x-1">
-                  {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-colors ${
-                          currentPage === pageNum
-                            ? 'bg-blue-600 text-white shadow-md'
-                            : 'bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-                
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-800"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
     </div>
   );
-};
+}
 
-export default AppointmentsDashboard;
+function Stat({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5"><p className="text-xs text-[#77736d]">{label}</p><p className="mt-3 text-3xl font-medium tracking-[-.04em] text-white">{value}</p></div>;
+}

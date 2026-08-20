@@ -1,6 +1,7 @@
 import axios from "axios";
+import { backendUrl } from "@/store";
 
 export const dash = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL + "/api/v1/appointment",
+  baseURL: `${backendUrl}/api/v1/appointment`,
   headers: { "Content-Type": "application/json" },
 });

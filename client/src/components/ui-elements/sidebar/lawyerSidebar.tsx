@@ -30,11 +30,12 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
+import { clearAuth } from "@/components/functions/services/authService";
 
 const sidebarNav = [
   {
     title: "Appointment",
-    basePath: "/dashboard/lawyer/appointments",
+    basePath: "/dashboard/lawyer",
     baseLink: null,
     items: [
       
@@ -61,8 +62,8 @@ export default function LawyerSidebar({
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
-    router.push("/login"); // redirect to login page
+    clearAuth();
+    router.replace("/login");
   };
 
   return (
@@ -71,11 +72,11 @@ export default function LawyerSidebar({
       <SidebarHeader className="p-4 border-b border-slate-800 bg-slate-900">
         {/* Back Button */}
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/dashboard/lawyer")}
           className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft size={16} />
-          Back
+          Dashboard
         </button>
 
         {/* Branding */}
