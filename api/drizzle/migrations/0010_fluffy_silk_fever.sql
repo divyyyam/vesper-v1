@@ -1,0 +1,1 @@
+ALTER TABLE "lawyers" ALTER COLUMN "specialization" DROP NOT NULL;

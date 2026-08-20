@@ -1,0 +1,1 @@
+ALTER TABLE "lawyers" ADD COLUMN "wallet_address" text NOT NULL;
