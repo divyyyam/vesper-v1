@@ -13,15 +13,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <LawyerSidebar/>
 
        
-        <div className="flex-1">
-          <SidebarInset>
-            <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              
+        <div className="flex-1 bg-slate-950 text-slate-100">
+          <SidebarInset className="bg-slate-950">
+            <header className="bg-slate-900 sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b border-slate-800 px-4 z-20 text-slate-100">
+              <SidebarTrigger className="-ml-1 text-slate-200 hover:text-white" />
+              <Separator orientation="vertical" className="mr-2 h-4 bg-slate-700" />
             </header>
 
-            <main className="p-4">
+            <main className="p-4 bg-slate-950 text-slate-100 min-h-[calc(100vh-4rem)]">
               {children}
             </main>
           </SidebarInset>

@@ -153,36 +153,36 @@ const AddAppointmentPage = () => {
   };
 
   return (
-    <div className="w-full px-4 sm:px-8 lg:px-16 xl:px-32 py-6 bg-transparent min-h-screen">
-      <div className="w-full max-w-5xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg p-8 w-full">
+    <div className="w-full px-4 sm:px-8 lg:px-16 xl:px-32 py-8 bg-[#0b0f19] text-slate-100 min-h-screen">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 w-full">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 bg-blue-600/20 border border-blue-500/40 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-blue-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Schedule Appointment</h1>
-            <p className="text-gray-600">Book a consultation with a legal professional</p>
+            <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Schedule Appointment</h1>
+            <p className="text-slate-300 text-sm">Book a consultation with a legal professional</p>
           </div>
 
           {message.text && (
-            <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
               message.type === 'success' 
-                ? 'bg-green-50 text-green-700 border border-green-200' 
-                : 'bg-red-50 text-red-700 border border-red-200'
+                ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60' 
+                : 'bg-rose-950/80 text-rose-300 border border-rose-800/60'
             }`}>
               {message.type === 'success' ? (
                 <CheckCircle className="w-5 h-5 flex-shrink-0" />
               ) : (
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
               )}
-              <span>{message.text}</span>
+              <span className="font-medium text-sm">{message.text}</span>
             </div>
           )}
           <div className="space-y-6">
             {/* Title Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FileText className="w-4 h-4 inline mr-2" />
+              <label className="block text-sm font-semibold text-slate-200 mb-2">
+                <FileText className="w-4 h-4 inline mr-2 text-blue-400" />
                 Appointment Title
               </label>
               <input
@@ -191,14 +191,14 @@ const AddAppointmentPage = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="e.g., Legal Consultation for Contract Review"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                 required
               />
             </div>
 
             {/* Description Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-200 mb-2">
                 Description
               </label>
               <textarea
@@ -207,75 +207,75 @@ const AddAppointmentPage = () => {
                 onChange={handleInputChange}
                 placeholder="Provide detailed information about your legal matter..."
                 rows="4"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none outline-none"
                 required
               />
             </div>
 
             {/* Reason Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-200 mb-2">
                 Reason for Consultation
               </label>
               <select
                 name="reason"
                 value={formData.reason}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                 required
               >
-                <option value="">Select a reason</option>
-                <option value="Contract Review">Contract Review</option>
-                <option value="Legal Advice">Legal Advice</option>
-                <option value="Litigation Support">Litigation Support</option>
-                <option value="Document Preparation">Document Preparation</option>
-                <option value="Business Law">Business Law</option>
-                <option value="Family Law">Family Law</option>
-                <option value="Criminal Law">Criminal Law</option>
-                <option value="Property Law">Property Law</option>
-                <option value="Other">Other</option>
+                <option value="" className="bg-slate-900 text-slate-300">Select a reason</option>
+                <option value="Contract Review" className="bg-slate-900 text-slate-100">Contract Review</option>
+                <option value="Legal Advice" className="bg-slate-900 text-slate-100">Legal Advice</option>
+                <option value="Litigation Support" className="bg-slate-900 text-slate-100">Litigation Support</option>
+                <option value="Document Preparation" className="bg-slate-900 text-slate-100">Document Preparation</option>
+                <option value="Business Law" className="bg-slate-900 text-slate-100">Business Law</option>
+                <option value="Family Law" className="bg-slate-900 text-slate-100">Family Law</option>
+                <option value="Criminal Law" className="bg-slate-900 text-slate-100">Criminal Law</option>
+                <option value="Property Law" className="bg-slate-900 text-slate-100">Property Law</option>
+                <option value="Other" className="bg-slate-900 text-slate-100">Other</option>
               </select>
             </div>
 
             {/* Lawyer Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <User className="w-4 h-4 inline mr-2" />
+              <label className="block text-sm font-semibold text-slate-200 mb-2">
+                <User className="w-4 h-4 inline mr-2 text-blue-400" />
                 Select Lawyer
               </label>
               <div className="relative">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={handleLawyerSearch}
                     onFocus={() => setShowLawyerDropdown(true)}
                     placeholder={loadingLawyers ? "Loading lawyers..." : "Search lawyers by name, specialization, or email"}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                     disabled={loadingLawyers}
                   />
                 </div>
 
                 {showLawyerDropdown && !loadingLawyers && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
                     {filteredLawyers.length > 0 ? (
                       filteredLawyers.map((lawyer) => (
                         <div
                           key={lawyer.id}
                           onClick={() => selectLawyer(lawyer)}
-                          className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          className="p-4 hover:bg-slate-800 cursor-pointer border-b border-slate-800/60 last:border-b-0 transition-colors"
                         >
-                          <div className="font-medium text-gray-800">{lawyer.name}</div>
-                          <div className="text-sm text-blue-600">{lawyer.specialization}</div>
-                          <div className="text-xs text-gray-500">{lawyer.email}</div>
+                          <div className="font-semibold text-white">{lawyer.name}</div>
+                          <div className="text-sm text-blue-400 font-medium">{lawyer.specialization}</div>
+                          <div className="text-xs text-slate-400">{lawyer.email}</div>
                           {lawyer.stateRollNumber && (
-                            <div className="text-xs text-gray-400">Roll No: {lawyer.stateRollNumber}</div>
+                            <div className="text-xs text-slate-500 mt-0.5">Roll No: {lawyer.stateRollNumber}</div>
                           )}
                         </div>
                       ))
                     ) : (
-                      <div className="p-4 text-gray-500 text-center">
+                      <div className="p-4 text-slate-400 text-center text-sm">
                         No lawyers found matching your search
                       </div>
                     )}
@@ -284,18 +284,18 @@ const AddAppointmentPage = () => {
               </div>
 
               {selectedLawyer && (
-                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="font-medium text-blue-800">{selectedLawyer.name}</div>
-                  <div className="text-sm text-blue-600">{selectedLawyer.specialization}</div>
-                  <div className="text-xs text-blue-500">{selectedLawyer.email}</div>
+                <div className="mt-3 p-3 bg-blue-950/60 rounded-xl border border-blue-800/60">
+                  <div className="font-semibold text-blue-300">{selectedLawyer.name}</div>
+                  <div className="text-sm text-blue-400">{selectedLawyer.specialization}</div>
+                  <div className="text-xs text-slate-300">{selectedLawyer.email}</div>
                 </div>
               )}
             </div>
 
             {/* Scheduled Date and Time */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Clock className="w-4 h-4 inline mr-2" />
+              <label className="block text-sm font-semibold text-slate-200 mb-2">
+                <Clock className="w-4 h-4 inline mr-2 text-blue-400" />
                 Scheduled Date & Time
               </label>
               <input
@@ -304,10 +304,10 @@ const AddAppointmentPage = () => {
                 value={formData.scheduledAt}
                 onChange={handleInputChange}
                 min={getMinDateTime()}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Please select a date and time at least 1 hour from now
               </p>
             </div>
@@ -317,7 +317,7 @@ const AddAppointmentPage = () => {
               type="button"
               onClick={handleSubmit}
               disabled={loading || loadingLawyers || !selectedLawyer}
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 px-6 rounded-xl font-bold hover:from-blue-500 hover:to-indigo-500 focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50"
             >
               {loading ? (
                 <>
@@ -332,9 +332,9 @@ const AddAppointmentPage = () => {
               )}
             </button>
          
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-800 mb-2">📋 Appointment Guidelines</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
+          <div className="mt-8 p-4 bg-slate-950/80 border border-slate-800 rounded-xl">
+            <h3 className="font-semibold text-slate-100 mb-2">📋 Appointment Guidelines</h3>
+            <ul className="text-sm text-slate-300 space-y-1.5">
               <li>• Appointments must be scheduled at least 1 hour in advance</li>
               <li>• Please provide detailed information to help the lawyer prepare</li>
               <li>• You will receive a confirmation once the appointment is created</li>

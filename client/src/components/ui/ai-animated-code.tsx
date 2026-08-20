@@ -92,7 +92,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className={`relative ${containerClassName || ""}`}>
         <textarea
-          className={`flex min-h-[80px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all duration-200 ease-in-out placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 ${showRing ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-0" : ""} ${className || ""}`}
+          className={`flex min-h-[80px] w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white transition-all duration-200 ease-in-out placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 ${showRing ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0" : ""} ${className || ""}`}
           ref={ref}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -101,7 +101,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
         {showRing && isFocused && (
           <span
-            className="absolute inset-0 rounded-md pointer-events-none ring-2 ring-offset-0 ring-main-blue opacity-100 transition-opacity duration-200"
+            className="absolute inset-0 rounded-xl pointer-events-none ring-2 ring-offset-0 ring-blue-500 opacity-100 transition-opacity duration-200"
             style={{ animation: "fadeIn 0.2s ease-in-out" }}
           />
         )}
@@ -364,20 +364,16 @@ export default function AnimatedAIChat() {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-gray-50 text-gray-900 relative overflow-hidden">
-      {/* Background decorative elements */}
+    <div className="h-[calc(100vh-60px)] w-full flex flex-col bg-[#0b0f19] text-slate-100 relative overflow-hidden">
+      {/* Background decorative ambient glow */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
         <div 
-          className="absolute top-0 left-1/4 w-96 h-96 bg-main-blue rounded-full mix-blend-normal filter blur-[128px]"
-          style={{ animation: "pulse 2s infinite" }}
+          className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full filter blur-[128px]"
+          style={{ animation: "pulse 3s infinite" }}
         />
         <div 
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-main-blue rounded-full mix-blend-normal filter blur-[128px]"
-          style={{ animation: "pulse 2s infinite", animationDelay: "0.7s" }}
-        />
-        <div 
-          className="absolute top-1/4 right-1/3 w-64 h-64 bg-main-blue rounded-full mix-blend-normal filter blur-[96px]"
-          style={{ animation: "pulse 2s infinite", animationDelay: "1s" }}
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full filter blur-[128px]"
+          style={{ animation: "pulse 3s infinite", animationDelay: "0.7s" }}
         />
       </div>
 
@@ -390,21 +386,37 @@ export default function AnimatedAIChat() {
       />
 
       {/* Messages Area - Fixed height with independent scrolling */}
-      <div className="flex-1 overflow-y-auto p-6 w-full pb-48" style={{ height: "calc(100vh - 200px)" }}>
-        <div className="max-w-7xl mx-auto h-full">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 w-full pb-48" style={{ height: "calc(100vh - 220px)" }}>
+        <div className="max-w-4xl mx-auto h-full">
           {messages.length === 0 && (
             <div 
-              className="flex items-center justify-center h-[60vh] text-center opacity-0"
+              className="flex items-center justify-center h-[55vh] text-center opacity-0"
               style={{ 
                 animation: "fadeInUp 0.5s ease-out forwards",
                 animationDelay: "0.1s"
               }}
             >
-              <div className="space-y-4">
-                <h1 className="text-4xl font-medium text-gray-800">
-                  How can I assist you today?
+              <div className="space-y-4 max-w-lg mx-auto">
+                <div className="w-16 h-16 bg-blue-950/80 border border-blue-800/60 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-950/40">
+                  <Sparkles className="w-8 h-8 text-blue-400" />
+                </div>
+                <h1 className="text-3xl font-extrabold text-white tracking-tight">
+                  How can I assist your legal queries today?
                 </h1>
-                <p className="text-gray-600">Upload a PDF or ask me anything</p>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  Upload a legal contract (PDF) to generate a summary, or ask any question about Indian law & statutes.
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 pt-2">
+                  {["Summarize Contract PDF", "Legal Rights Advice", "Draft Agreement"].map((action, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setValue(action)}
+                      className="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl transition-colors font-medium"
+                    >
+                      ✨ {action}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -413,7 +425,7 @@ export default function AnimatedAIChat() {
             {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex gap-4 opacity-0 ${
+                className={`flex gap-3 opacity-0 ${
                   message.sender === "user" ? "justify-end" : "justify-start"
                 }`}
                 style={{
@@ -422,28 +434,28 @@ export default function AnimatedAIChat() {
                 }}
               >
                 {message.sender === "ai" && (
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-4 h-4 text-gray-800" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-950 border border-blue-800/60 flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
+                    <Bot className="w-5 h-5 text-blue-400" />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[85%] flex flex-col gap-3 ${
+                  className={`max-w-[85%] flex flex-col gap-2 ${
                     message.sender === "user" ? "ml-auto" : ""
                   }`}
                 >
                   <div
-                    className={`rounded-2xl px-5 py-4 text-sm whitespace-pre-wrap leading-relaxed shadow-sm ${
+                    className={`rounded-2xl px-5 py-4 text-sm whitespace-pre-wrap leading-relaxed shadow-lg ${
                       message.sender === "user"
-                        ? "bg-blue-400 text-white"
-                        : "bg-white text-gray-900 border border-gray-200"
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium shadow-blue-950/40"
+                        : "bg-slate-900 text-slate-100 border border-slate-800"
                     }`}
                   >
                     {message.content && message.content.includes("**") ? (
                       <div
                         dangerouslySetInnerHTML={{
                           __html: message.content
-                            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                            .replace(/\*\*(.*?)\*\*/g, "<strong class='text-white font-bold'>$1</strong>")
                             .replace(/\n\n/g, "<br><br>")
                             .replace(/\n/g, "<br>"),
                         }}
@@ -455,8 +467,8 @@ export default function AnimatedAIChat() {
                 </div>
 
                 {message.sender === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0 mt-1">
-                    <User className="w-4 h-4 text-blue-200" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
+                    <User className="w-5 h-5 text-white" />
                   </div>
                 )}
               </div>
@@ -464,15 +476,15 @@ export default function AnimatedAIChat() {
 
             {isTyping && (
               <div
-                className="flex gap-4 justify-start opacity-0"
+                className="flex gap-3 justify-start opacity-0"
                 style={{
                   animation: "fadeInUp 0.3s ease-out forwards"
                 }}
               >
-                <div className="w-8 h-8 rounded-full bg-main-blue flex items-center justify-center flex-shrink-0 mt-1">
-                  <Bot className="w-4 h-4 text-blue-200" />
+                <div className="w-9 h-9 rounded-xl bg-blue-950 border border-blue-800/60 flex items-center justify-center flex-shrink-0 mt-1">
+                  <Bot className="w-5 h-5 text-blue-400" />
                 </div>
-                <div className="bg-white rounded-2xl px-5 py-4 border border-gray-200 shadow-sm">
+                <div className="bg-slate-900 rounded-2xl px-5 py-4 border border-slate-800 shadow-md">
                   <TypingDots />
                 </div>
               </div>
@@ -483,15 +495,15 @@ export default function AnimatedAIChat() {
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white/95 backdrop-blur-xl p-6 z-10">
-        <div className="max-w-7xl mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 border-t border-slate-800/80 bg-slate-900/90 backdrop-blur-xl p-4 sm:p-6 z-20">
+        <div className="max-w-4xl mx-auto">
           <div
-            className="relative backdrop-blur-sm bg-white rounded-2xl border border-gray-200 shadow-lg transform scale-98 transition-transform duration-200 hover:scale-100"
+            className="relative bg-slate-950 rounded-2xl border border-slate-800 shadow-2xl transition-all duration-200 focus-within:border-blue-500/80"
           >
             {showCommandPalette && (
               <div
                 ref={commandPaletteRef}
-                className={`absolute left-4 right-4 bottom-full mb-2 backdrop-blur-xl bg-white rounded-lg z-50 shadow-lg border border-gray-200 overflow-hidden transition-all duration-200 ${
+                className={`absolute left-4 right-4 bottom-full mb-2 bg-slate-900 border border-slate-800 rounded-xl z-50 shadow-2xl overflow-hidden transition-all duration-200 ${
                   showCommandPalette ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
                 }`}
               >
@@ -501,14 +513,14 @@ export default function AnimatedAIChat() {
                       key={suggestion.prefix}
                       className={`flex items-center gap-2 px-3 py-2 text-xs cursor-pointer transition-colors ${
                         activeSuggestion === index
-                          ? "bg-orange-500/10 text-main-blue"
-                          : "text-gray-600 hover:bg-gray-50"
+                          ? "bg-blue-950 text-blue-300"
+                          : "text-slate-300 hover:bg-slate-800"
                       }`}
                       onClick={() => selectCommandSuggestion(index)}
                     >
                       {suggestion.icon}
-                      <span className="font-medium">{suggestion.label}</span>
-                      <span className="text-gray-400 text-xs ml-1">
+                      <span className="font-medium text-white">{suggestion.label}</span>
+                      <span className="text-slate-400 text-xs ml-1">
                         {suggestion.prefix}
                       </span>
                     </div>
@@ -517,7 +529,7 @@ export default function AnimatedAIChat() {
               </div>
             )}
 
-            <div className="p-4">
+            <div className="p-3">
               <Textarea
                 ref={textareaRef}
                 value={value}
@@ -528,9 +540,9 @@ export default function AnimatedAIChat() {
                 onKeyDown={handleKeyDown}
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
-                placeholder="Message Vesper-AI to answer your legal queries"
+                placeholder="Message Vesper AI to answer your legal queries..."
                 containerClassName="w-full"
-                className="w-full px-4 py-3 resize-none bg-transparent border-none text-gray-900 text-sm focus:outline-none placeholder:text-gray-500 min-h-[60px]"
+                className="w-full px-4 py-2.5 resize-none bg-transparent border-none text-white text-sm focus:outline-none placeholder:text-slate-500 min-h-[50px]"
                 showRing={false}
               />
             </div>
@@ -544,28 +556,29 @@ export default function AnimatedAIChat() {
                 {attachments.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-2 text-xs bg-white py-1.5 px-3 rounded-lg text-blue-900 border border-blue-200 transform scale-90 transition-transform duration-200 hover:scale-100"
+                    className="flex items-center gap-2 text-xs bg-blue-950/90 py-1.5 px-3 rounded-xl text-blue-300 border border-blue-800/80 font-medium"
                   >
-                    <FileUp className="w-3 h-3" />
+                    <FileUp className="w-3.5 h-3.5 text-blue-400" />
                     <span>{file}</span>
                     <button
                       onClick={() => removeAttachment(index)}
-                      className="text-blue-200 hover:text-blue-900 transition-colors"
+                      className="text-slate-400 hover:text-white transition-colors"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
               </div>
             )}
 
-            <div className="p-4 border-t border-gray-100 flex items-center justify-between gap-4">
+            <div className="p-3 border-t border-slate-800/60 flex items-center justify-between gap-4">
               <button
                 type="button"
                 onClick={handleAttachFile}
-                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition-all duration-200 hover:bg-gray-100 transform hover:scale-105"
+                className="p-2 text-slate-400 hover:text-white rounded-xl transition-all duration-200 hover:bg-slate-800 flex items-center gap-2 text-xs font-medium"
               >
-                <Paperclip className="w-4 h-4" />
+                <Paperclip className="w-4 h-4 text-blue-400" />
+                <span>Attach PDF</span>
               </button>
 
               <button
@@ -574,14 +587,14 @@ export default function AnimatedAIChat() {
                 disabled={
                   isTyping || isProcessingPdf || (!value.trim() && !pdfFile)
                 }
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 transform hover:scale-105 ${
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex items-center gap-2 shadow-lg ${
                   value.trim() || pdfFile
-                    ? "bg-blue-500 text-white shadow-lg hover:bg-blue-600 hover:shadow-xl"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-950/50 hover:from-blue-500 hover:to-indigo-500 transform hover:scale-105"
+                    : "bg-slate-800 text-slate-500 cursor-not-allowed"
                 }`}
               >
                 {isTyping || isProcessingPdf ? (
-                  <Loader className="w-4 h-4 animate-spin" />
+                  <Loader className="w-4 h-4 animate-spin text-white" />
                 ) : (
                   <Send className="w-4 h-4" />
                 )}

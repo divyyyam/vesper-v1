@@ -16,7 +16,8 @@
     "dotenv": "^17.2.1",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.4",
-    "hono": "^4.8.10"
+    "hono": "^4.8.10",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "wrangler": "^4.4.0"

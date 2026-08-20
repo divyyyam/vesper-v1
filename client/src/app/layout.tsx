@@ -23,11 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" >
+    <html lang="en" className="dark scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0b0f19] text-slate-100 min-h-screen selection:bg-blue-600 selection:text-white`}
       >
-        <main>{children}</main>
+        <main className="min-h-screen bg-[#0b0f19] text-slate-100">{children}</main>
       </body>
     </html>
   );

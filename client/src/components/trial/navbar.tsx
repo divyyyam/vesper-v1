@@ -84,11 +84,11 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-200/50 px-6 py-4 fixed top-0 z-50 shadow-sm">
+    <nav className="w-full bg-[#0b0f19]/80 backdrop-blur-md border-b border-slate-800/80 px-6 py-4 fixed top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto flex items-center justify-between relative">
         {/* Logo (Left) */}
         <div className="flex items-center space-x-2">
-          <span className="text-gray-900 font-bold text-xl tracking-tight">
+          <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
             Vesper AI
           </span>
         </div>
@@ -99,10 +99,10 @@ const Navbar: React.FC = () => {
             <a
               key={link.href}
               href={link.href}
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+              className="text-slate-300 hover:text-blue-400 font-medium transition-colors duration-200 relative group text-sm tracking-wide"
             >
               {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
             </a>
           ))}
         </div>
@@ -113,13 +113,13 @@ const Navbar: React.FC = () => {
             <>
               <button
                 onClick={handleDashboard}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:-translate-y-0.5"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md shadow-blue-900/30 hover:shadow-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5 text-sm"
               >
                 Dashboard
               </button>
               <button
                 onClick={handleLogout}
-                className="px-5 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                className="px-5 py-2 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:border-slate-600 transition-all duration-200 text-sm"
               >
                 Logout
               </button>
@@ -128,13 +128,13 @@ const Navbar: React.FC = () => {
             <>
               <button
                 onClick={handleLogin}
-                className="px-5 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                className="px-5 py-2 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:border-slate-600 transition-all duration-200 text-sm"
               >
                 Login
               </button>
               <button
                 onClick={handleSignUp}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:-translate-y-0.5"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold shadow-md shadow-blue-900/30 hover:shadow-lg hover:from-blue-500 hover:to-violet-500 transition-all duration-200 transform hover:-translate-y-0.5 text-sm"
               >
                 Sign Up
               </button>
@@ -146,7 +146,7 @@ const Navbar: React.FC = () => {
         <div className="md:hidden">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-gray-600 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100 transition-all duration-300 relative"
+            className="text-slate-300 hover:text-blue-400 p-2 rounded-lg hover:bg-slate-800 transition-all duration-300 relative"
           >
             <div className="relative w-6 h-6 flex items-center justify-center">
               <Menu
@@ -170,29 +170,29 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden mt-4 space-y-4 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6 mx-4">
+        <div className="md:hidden mt-4 space-y-4 bg-slate-900/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-800 p-6 mx-4">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="block text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-blue-50 transition-all duration-200"
+              className="block text-slate-300 hover:text-blue-400 font-medium py-2 px-3 rounded-lg hover:bg-slate-800 transition-all duration-200"
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
             </a>
           ))}
-          <div className="flex flex-col space-y-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col space-y-3 pt-4 border-t border-slate-800">
             {authState.isAuthenticated ? (
               <>
                 <button
                   onClick={handleDashboard}
-                  className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
+                  className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md hover:from-blue-500 hover:to-indigo-500 transition-all duration-200"
                 >
                   Dashboard
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full px-5 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                  className="w-full px-5 py-3 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all duration-200"
                 >
                   Logout
                 </button>
@@ -201,13 +201,13 @@ const Navbar: React.FC = () => {
               <>
                 <button
                   onClick={handleLogin}
-                  className="w-full px-5 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                  className="w-full px-5 py-3 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all duration-200"
                 >
                   Login
                 </button>
                 <button
                   onClick={handleSignUp}
-                  className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                  className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold shadow-md hover:from-blue-500 hover:to-violet-500 transition-all duration-200"
                 >
                   Sign Up
                 </button>

@@ -58,83 +58,87 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="w-full px-4 sm:px-8 lg:px-16 xl:px-32 py-6 bg-transparent min-h-screen">
+    <div className="w-full px-4 sm:px-8 lg:px-16 xl:px-32 py-8 bg-[#0b0f19] text-slate-100 min-h-screen">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-slate-900/80 backdrop-blur-md border border-slate-800/80 px-6 py-4 rounded-2xl shadow-lg mb-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">⚖️ Vesper AI</h1>
-          <p className="text-gray-600">AI + Blockchain for Legal Justice</p>
+          <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+            ⚖️ Vesper AI
+          </h1>
+          <p className="text-sm text-slate-400 font-medium">AI + Security for Legal Justice</p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-6 py-10">
+      <main className="px-2 py-4">
         {/* Hero */}
         <div className="mb-12 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Justice. Simplified. Secured.
+          <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-100 mb-4 tracking-tight">
+            Justice. <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">Simplified.</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Vesper AI empowers marginalized communities to file complaints,
-            generate legal documents, and connect with lawyers — all secured
-            with blockchain technology.
+          <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Vesper AI empowers communities to file complaints, generate legal documents, and connect with verified lawyers — all with instant AI intelligence.
           </p>
         </div>
 
         {/* AI Features */}
-        <section className="mb-12">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
+        <section className="mb-14">
+          <h3 className="text-2xl font-bold text-slate-100 mb-6 text-center tracking-wide">
             🌐 AI-Powered Features
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all"
+                className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-6 border border-slate-800/80 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-950/20 transition-all duration-300 transform hover:-translate-y-1"
               >
-                <div className="p-3 bg-blue-50 rounded-lg w-fit mb-4">
-                  <f.icon className="w-6 h-6 text-blue-600" />
+                <div className="p-3 bg-blue-950/80 border border-blue-800/40 rounded-xl w-fit mb-4">
+                  <f.icon className="w-6 h-6 text-blue-400" />
                 </div>
-                <h4 className="font-semibold text-gray-900 mb-2">{f.title}</h4>
-                <p className="text-sm text-gray-600">{f.desc}</p>
+                <h4 className="font-semibold text-slate-100 text-lg mb-2">{f.title}</h4>
+                <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Blockchain Benefits */}
-        <section className="mb-12">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-            🔗 Blockchain-Powered Security
+        {/* Security Benefits */}
+        <section className="mb-14">
+          <h3 className="text-2xl font-bold text-slate-100 mb-6 text-center tracking-wide">
+            🔗 Verified Security & Auditability
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {blockchainBenefits.map((b, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all"
+                className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-6 border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-950/20 transition-all duration-300 transform hover:-translate-y-1"
               >
-                <div className="p-3 bg-green-50 rounded-lg w-fit mb-4">
-                  <b.icon className="w-6 h-6 text-green-600" />
+                <div className="p-3 bg-emerald-950/80 border border-emerald-800/40 rounded-xl w-fit mb-4">
+                  <b.icon className="w-6 h-6 text-emerald-400" />
                 </div>
-                <h4 className="font-semibold text-gray-900 mb-2">{b.title}</h4>
-                <p className="text-sm text-gray-600">{b.desc}</p>
+                <h4 className="font-semibold text-slate-100 text-lg mb-2">{b.title}</h4>
+                <p className="text-sm text-slate-400 leading-relaxed">{b.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* Bottom CTA */}
-        <div className="mt-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-10 text-white text-center">
-          <h3 className="text-2xl font-semibold mb-3">
-            Ready to Experience Justice Made Simple?
-          </h3>
-          <p className="text-blue-100 mb-6">
-            Try Vesper AI’s prototype today and explore how AI + blockchain can
-            transform legal aid.
-          </p>
-          <button onClick={()=>(router.push("/vesper-ai"))}className="bg-white text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-            Get Started
-          </button>
+        <div className="mt-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-10 text-white text-center shadow-2xl shadow-indigo-950/50 relative overflow-hidden">
+          <div className="relative z-10">
+            <h3 className="text-3xl font-extrabold mb-3 tracking-tight">
+              Ready to Experience Justice Made Simple?
+            </h3>
+            <p className="text-slate-200 text-base max-w-xl mx-auto mb-8 leading-relaxed">
+              Explore Vesper AI’s intelligent assistant to analyze documents, consult AI, or connect with legal professionals today.
+            </p>
+            <button
+              onClick={() => router.push("/vesper-ai")}
+              className="bg-white text-blue-700 hover:bg-slate-100 font-bold px-8 py-3.5 rounded-xl shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+            >
+              Get Started with AI
+            </button>
+          </div>
         </div>
       </main>
     </div>
